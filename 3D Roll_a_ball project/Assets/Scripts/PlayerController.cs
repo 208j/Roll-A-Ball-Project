@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour
     public float speed = 0;
     public TextMeshProUGUI countText;
     public GameObject winTextObject;
+    public GameObject loseTextObject;
+    public GameManager gameManager;
 
     private int count;
     private float movementX;
@@ -23,6 +25,7 @@ public class PlayerController : MonoBehaviour
         count = 0;
         SetCountText();
         winTextObject.SetActive(false);
+        loseTextObject.SetActive(false);
     }
 
     void OnMove(InputValue movementValue)
@@ -42,23 +45,29 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void FixedUpdate() // FixedUpdate is called at a fixed interval and is independent of frame rate. Put physics code here.
+    void FixedUpdate() // FixedUpdate is called at a fixed interval and is independent of frame rate. 
     {
+        
+
         Vector3 movement = new Vector3(movementX, 0.0f, movementZ); // create a movement vector based on the input
         rb.AddForce(movement * speed);
     }
 
-    void OnCollisionEnter(Collision collision) // OnCollisionEnter is called when the Player collides with other ogject
+    void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Enemy")) // check if the other object has the tag "Enemy"
+        if (collision.gameObject.CompareTag("Enemy"))
         {
-            Destroy(gameObject); // destroy the player object when it collides with an enemy
-            winTextObject.SetActive(true);
-            winTextObject.GetComponent<TextMeshProUGUI>().text = "You Lose!";
+            Destroy(gameObject);
+
+            if (gameManager != null)
+                gameManager.EndGame(false);
+            else
+                loseTextObject.SetActive(true);
         }
-        if (collision.gameObject.CompareTag("Ground")) // check if the other object has the tag "Ground"
+
+        if (collision.gameObject.CompareTag("Ground"))
         {
-            isGrounded = true; // set isGrounded to true when the player collides with the ground
+            isGrounded = true;
         }
     }
 
@@ -74,13 +83,17 @@ public class PlayerController : MonoBehaviour
 
     void SetCountText()
     {
-        countText.text = "Count: " + count.ToString();
+        countText.text = "Count: " + count.ToString(); 
+
         if (count >= 12)
         {
-            winTextObject.SetActive(true);
-            winTextObject.GetComponent<TextMeshProUGUI>().text = "You Win!";
-            Destroy(GameObject.Find("Enemy")); // destroy the enemy object when the player collects all pickups
+            if (gameManager != null)
+                gameManager.EndGame(true);
+            else
+            {
+                winTextObject.SetActive(true);
+                Destroy(GameObject.Find("Enemy"));
+            }
         }
     }
-
 }
